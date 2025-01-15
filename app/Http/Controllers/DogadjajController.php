@@ -56,4 +56,10 @@ class DogadjajController extends Controller
 
         return response()->json(null, 204);
     }
+
+    public function pretraga($naziv)
+    {
+        $dogadjaji = Dogadjaj::where('naziv', 'like', '%' . $naziv . '%')->get();
+        return response()->json($dogadjaji, 200);
+    }
 }

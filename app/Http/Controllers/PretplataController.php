@@ -52,4 +52,17 @@ class PretplataController extends Controller
 
         return response()->json(null, 204);
     }
+
+    public function kreiraj(Request $request)
+    {
+        $validated = $request->validate([
+            'korisnik_id' => 'required|exists:korisnici,id',
+            'datum_pocetka' => 'required|date',
+            'datum_isteka' => 'required|date',
+        ]);
+
+        $pretplata = Pretplata::create($validated);
+
+        return response()->json($pretplata, 201);
+    }
 }

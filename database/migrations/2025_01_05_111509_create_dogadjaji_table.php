@@ -4,11 +4,9 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+return new class extends Migration
+{
+    public function up()
     {
         Schema::create('dogadjaji', function (Blueprint $table) {
             $table->id();
@@ -16,15 +14,14 @@ return new class extends Migration {
             $table->text('opis');
             $table->dateTime('datum_pocetka');
             $table->dateTime('datum_zavrsetka');
-            $table->foreignId('korisnik_id')->constrained('korisnici');
+            $table->unsignedBigInteger('korisnik_id');
             $table->timestamps();
+
+            $table->foreign('korisnik_id')->references('id')->on('korisnici')->onDelete('cascade');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('dogadjaji');
     }

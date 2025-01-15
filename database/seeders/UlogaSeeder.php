@@ -14,7 +14,7 @@ class UlogaSeeder extends Seeder
     public function run(): void
     {
         Uloga::create(['naziv' => 'Admin']);
+        Uloga::create(['naziv' => 'Premium']);
         Uloga::create(['naziv' => 'User']);
-        Uloga::create(['naziv' => 'Moderator']);
     }
 }

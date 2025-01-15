@@ -9,7 +9,8 @@ class ReklamaController extends Controller
 {
     public function index()
     {
-        return Reklama::all();
+        $reklame = Reklama::where('vidljivo_premium', false)->get();
+        return response()->json($reklame, 200);
     }
 
     public function store(Request $request)
@@ -52,4 +53,10 @@ class ReklamaController extends Controller
 
         return response()->json(null, 204);
     }
+
+    public function premiumReklame()
+    {
+        return response()->json([], 200);
+    }
+
 }

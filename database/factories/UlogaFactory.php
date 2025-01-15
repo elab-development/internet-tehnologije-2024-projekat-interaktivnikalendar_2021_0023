@@ -11,8 +11,9 @@ class UlogaFactory extends Factory
 
     public function definition()
     {
+        $roles = ['admin', 'premium', 'user'];
         return [
-            'naziv' => $this->faker->word,
+            'naziv' => $this->faker->unique()->randomElement($roles),
         ];
     }
 }
