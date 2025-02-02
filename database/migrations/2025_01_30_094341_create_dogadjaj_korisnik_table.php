@@ -4,25 +4,23 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateDogadjajiTable extends Migration
+class CreateDogadjajKorisnikTable extends Migration
 {
     public function up()
     {
-        Schema::create('dogadjaji', function (Blueprint $table) {
+        Schema::create('dogadjaj_korisnik', function (Blueprint $table) {
             $table->id();
-            $table->string('naziv');
-            $table->text('opis');
-            $table->date('datum_pocetka');
-            $table->date('datum_zavrsetka');
+            $table->unsignedBigInteger('dogadjaj_id');
             $table->unsignedBigInteger('korisnik_id');
             $table->timestamps();
 
+            $table->foreign('dogadjaj_id')->references('id')->on('dogadjaji')->onDelete('cascade');
             $table->foreign('korisnik_id')->references('id')->on('korisnici')->onDelete('cascade');
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('dogadjaji');
+        Schema::dropIfExists('dogadjaj_korisnik');
     }
 }

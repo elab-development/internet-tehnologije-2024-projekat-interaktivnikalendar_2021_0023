@@ -19,8 +19,10 @@ class DogadjajController extends Controller
             'opis' => 'required|string',
             'datum_pocetka' => 'required|date',
             'datum_zavrsetka' => 'required|date',
-            'korisnik_id' => 'required|exists:korisnici,id',
         ]);
+
+        // Postavljanje korisnik_id na 1
+        $validated['korisnik_id'] = 1;
 
         $dogadjaj = Dogadjaj::create($validated);
 
@@ -40,7 +42,6 @@ class DogadjajController extends Controller
             'opis' => 'sometimes|required|string',
             'datum_pocetka' => 'sometimes|required|date',
             'datum_zavrsetka' => 'sometimes|required|date',
-            'korisnik_id' => 'sometimes|required|exists:korisnici,id',
         ]);
 
         $dogadjaj = Dogadjaj::findOrFail($id);
@@ -61,5 +62,28 @@ class DogadjajController extends Controller
     {
         $dogadjaji = Dogadjaj::where('naziv', 'like', '%' . $naziv . '%')->get();
         return response()->json($dogadjaji, 200);
+    }
+
+    public function joinEvent($id)
+    {
+        try {
+            $korisnik = auth()->user();
+            $dogadjaj = Dogadjaj::findOrFail($id);
+            $dogadjaj->participants()->attach($korisnik->id);
+
+            return response()->json(['message' => 'Pridruženi događaju', 'dogadjaj' => $dogadjaj]);
+        } catch (\Exception $e) {
+            \Log::error('Error joining event: ' . $e->getMessage());
+
+            return response()->json(['message' => 'Došlo je do greške prilikom pridruživanja događaju'], 500);
+        }
+    }
+
+    public function getJoinedEvents(Request $request)
+    {
+        $korisnik = auth()->user();
+        $joinedEvents = $korisnik->joinedEvents;
+
+        return response()->json($joinedEvents);
     }
 }

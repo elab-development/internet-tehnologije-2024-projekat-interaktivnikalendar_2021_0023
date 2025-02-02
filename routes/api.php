@@ -14,47 +14,41 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::put('dogadjaji/{id}/join', [DogadjajController::class, 'joinEvent'])->middleware('auth:sanctum');
+Route::get('dogadjaji/joined', [DogadjajController::class, 'getJoinedEvents'])->middleware('auth:sanctum');
+Route::put('dogadjaji/{id}/join', [DogadjajController::class, 'joinEvent']);
+Route::get('dogadjaji/joined', [DogadjajController::class, 'getJoinedEvents'])->middleware('auth:sanctum');
 // Rute za Korisnik resurs
 //Route::apiResource('korisnici', KorisnikController::class);
 
-//Rute za Uloga resurs
+// Rute za Uloga resurs
 Route::apiResource('uloge', UlogaController::class);
 
 // Rute za Dogadjaj resurs
-//Route::apiResource('dogadjaji', DogadjajController::class);
+Route::apiResource('dogadjaji', DogadjajController::class)->middleware('auth:sanctum')->except(['store', 'update', 'destroy']);
+Route::post('dogadjaji', [DogadjajController::class, 'store'])->middleware(['auth:sanctum', 'admin']);
+Route::put('dogadjaji/{dogadjaj}', [DogadjajController::class, 'update'])->middleware(['auth:sanctum', 'admin']);
+Route::delete('dogadjaji/{dogadjaj}', [DogadjajController::class, 'destroy'])->middleware(['auth:sanctum', 'admin']);
 
 // Rute za Pretplata resurs
-//Route::apiResource('pretplate', PretplataController::class);
+Route::apiResource('pretplate', PretplataController::class)->middleware('auth:sanctum')->except(['store', 'update', 'destroy']);
+Route::post('pretplate', [PretplataController::class, 'store'])->middleware(['auth:sanctum', 'admin']);
+Route::put('pretplate/{pretplata}', [PretplataController::class, 'update'])->middleware(['auth:sanctum', 'admin']);
+Route::delete('pretplate/{pretplata}', [PretplataController::class, 'destroy'])->middleware(['auth:sanctum', 'admin']);
 
 // Rute za Reklama resurs
-//Route::apiResource('reklame', ReklamaController::class);
+Route::apiResource('reklame', ReklamaController::class)->middleware('auth:sanctum')->except(['index']);
+Route::get('reklame', [ReklamaController::class, 'index'])->middleware(['auth:sanctum']);
 
-//Route::get('dogadjaji/pretraga/{naziv}', [DogadjajController::class, 'pretraga']);
+// Rute za pretragu događaja
+Route::get('dogadjaji/pretraga/{naziv}', [DogadjajController::class, 'pretraga'])->middleware(['auth:sanctum']);
 
-//Route::post('pretplate/kreiraj', [PretplataController::class, 'kreiraj']);
-
-//Route::delete('reklame/obrisi/{id}', [ReklamaController::class, 'obrisi']);
-
+// Route za registraciju, login i logout
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
-// Administrator rute (manipulacija bazom)
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::post('dogadjaji', [DogadjajController::class, 'store']);
-    Route::put('dogadjaji/{dogadjaj}', [DogadjajController::class, 'update']);
-    Route::delete('dogadjaji/{dogadjaj}', [DogadjajController::class, 'destroy']);
-    Route::post('pretplate', [PretplataController::class, 'store']);
-    Route::put('pretplate/{pretplata}', [PretplataController::class, 'update']);
-    Route::delete('pretplate/{pretplata}', [PretplataController::class, 'destroy']);
-});
-
 // Premium user rute (bez reklama)
 Route::middleware(['auth:sanctum', 'premium'])->group(function () {
     Route::get('reklame/premium', [ReklamaController::class, 'premiumReklame']);
-});
-
-// Obični korisnik rute (sa reklamama)
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('reklame', [ReklamaController::class, 'index']);
 });

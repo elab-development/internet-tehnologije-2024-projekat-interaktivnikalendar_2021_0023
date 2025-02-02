@@ -13,29 +13,27 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
             'ime' => 'required|string|max:255',
-            'uloga_id' => 'required|exists:uloga,id',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6|confirmed',
         ]);
-
+    
         $user = User::create([
-            'name' => $validated['name'],
+            'name' => $validated['ime'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
-
+    
         Korisnik::create([
             'user_id' => $user->id,
             'ime' => $validated['ime'],
             'email' => $validated['email'],
             'sifra' => $validated['password'],
-            'uloga_id' => $validated['uloga_id'],
+            'uloga_id' => 3, // Automatski postavi uloga_id na 3
         ]);
-
+    
         $token = $user->createToken('auth_token')->plainTextToken;
-
+    
         return response()->json(['access_token' => $token, 'token_type' => 'Bearer'], 201);
     }
 
