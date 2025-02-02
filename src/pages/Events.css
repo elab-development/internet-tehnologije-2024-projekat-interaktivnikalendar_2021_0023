@@ -1,0 +1,38 @@
+.events-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    margin-bottom: 100px; /* Dodajemo marginu na dnu kako bi izbegli preklapanje sa banerom */
+  }
+  
+  .events-container {
+    width: 100%;
+    max-width: 800px;
+  }
+  
+  .event-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .event-card h3 {
+    margin-top: 0;
+  }
+  
+  .event-card button {
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .event-card button:hover {
+    background-color: #0056b3;
+  }

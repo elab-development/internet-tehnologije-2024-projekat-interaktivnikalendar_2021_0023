@@ -1,0 +1,46 @@
+.home {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(to right, #6a11cb, #2575fc); /* Gradijent pozadina */
+    height: 100vh; /* Visina ekrana */
+    color: white; /* Bela boja teksta */
+  }
+  
+  .home-header {
+    margin-bottom: 20px;
+  }
+  
+  .home-main {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  .feature {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 20px;
+    width: 250px;
+    background-color: rgba(255, 255, 255, 0.1); /* Poluprozirna bela pozadina */
+    color: white; /* Bela boja teksta */
+  }
+  
+  .feature h2 {
+    margin-top: 0;
+  }
+  
+  .feature-link {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .feature-link:hover {
+    background-color: #0056b3;
+  }

@@ -1,0 +1,30 @@
+.banner {
+    width: 100%;
+    background-color: #f1c40f;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1000; /* Veći z-index kako bi bio iznad ostalog sadržaja */
+  }
+  
+  .banner p {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+  
+  .banner a {
+    display: block;
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+  }
+  
+  .banner a:hover {
+    background-color: #0056b3;
+  }
