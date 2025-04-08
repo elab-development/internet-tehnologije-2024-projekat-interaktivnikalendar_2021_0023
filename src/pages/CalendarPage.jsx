@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import './CalendarPage.css';
 import Modal from '../components/Modal';
 import InputField from '../components/InputField';
 import Button from '../components/Button';
@@ -103,9 +104,12 @@ const CalendarPage = () => {
   };
 
   return (
-    <div>
-      <Calendar onChange={handleDateChange} value={date} />
-      <Button type="button" text="Create New Event" onClick={() => setModalOpen(true)} />
+    <div className='calendar-page'>
+      
+        <Calendar onChange={handleDateChange} value={date} />
+        <div className='btnCreate'>
+          <Button type="button" text="Create New Event" onClick={() => setModalOpen(true)}/>
+        </div>
       <Modal isOpen={modalOpen} onClose={handleCloseModal}>
         <div style={styles.modalHeader}>
           <h2>Create Event</h2>

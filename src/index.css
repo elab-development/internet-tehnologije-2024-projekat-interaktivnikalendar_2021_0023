@@ -32,3 +32,12 @@ nav ul li a {
   color: #fff;
   text-decoration: none;
 }
+
+nav ul li button{
+  padding: 5px 20px;
+  background-color: red;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
