@@ -27,7 +27,7 @@ const Register = ({ onRegister }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (form.password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+      setError("Lozinka mora imati najmanje 6 karaktera.");
       return;
     }
 
@@ -43,9 +43,10 @@ const Register = ({ onRegister }) => {
       .catch(error => {
         console.error(error);
         if (error.response && error.response.data.errors) {
-          setError(Object.values(error.response.data.errors).flat().join(' '));
+          const mappedErrors = mapErrorsToSerbian(error.response.data.errors);
+          setError(mappedErrors);
         } else {
-          setError("Registration failed. Please try again.");
+          setError("Registracija nije uspela. Pokušajte ponovo.");
         }
       });
   };
@@ -53,6 +54,29 @@ const Register = ({ onRegister }) => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     navigate("/login");
+  };
+
+  const mapErrorsToSerbian = (errors) => {
+    const errorMap = {
+      "The email has already been taken.": "Email je već zauzet.",
+      "The password field confirmation does not match.": "Potvrda lozinke se ne poklapa.",
+      "The name field is required.": "Ime je obavezno.",
+      "The password must be at least 6 characters.": "Lozinka mora imati najmanje 6 karaktera.",
+      "The email field is required.": "Email je obavezan.",
+      "The password field is required.": "Lozinka je obavezna.",
+    };
+
+    let mappedErrors = [];
+
+    Object.values(errors).forEach(error => {
+      if (errorMap[error]) {
+        mappedErrors.push(errorMap[error]);
+      } else {
+        mappedErrors.push(error); 
+      }
+    });
+
+    return mappedErrors.join(" ");
   };
 
   return (

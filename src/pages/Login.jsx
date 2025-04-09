@@ -5,12 +5,12 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import './Login.css';
 
-
 const Login = ({ onLogin }) => {
   const [form, setForm] = useState({
     email: "",
     password: ""
   });
+  const [error, setError] = useState(""); // Dodajemo state za greške
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -29,15 +29,23 @@ const Login = ({ onLogin }) => {
         localStorage.setItem("role", role);
         localStorage.setItem("user_id", user_id); // Čuvanje user_id u localStorage
         onLogin(role);
-        navigate("/");
+        navigate("/"); // Preusmeravanje na početnu stranicu nakon uspešne prijave
       })
-      .catch(error => console.error(error));
+      .catch(error => {
+        console.error(error);
+        if (error.response && error.response.data.message) {
+          setError("Pogrešan email ili lozinka. Pokušajte ponovo.");
+        } else {
+          setError("Dogodila se greška. Molimo pokušajte ponovo.");
+        }
+      });
   };
 
   return (
     <div className="login-page">
       <div className="login-container">
         <h1>Login Page</h1>
+        {error && <p className="error-message">{error}</p>} {/* Prikazivanje greške */}
         <form onSubmit={handleSubmit}>
           <InputField
             type="email"
