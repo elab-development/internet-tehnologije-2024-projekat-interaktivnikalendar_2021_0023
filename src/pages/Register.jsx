@@ -4,7 +4,7 @@ import Button from "../components/Button";
 import Modal from "../components/Modal";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import "./Register.css";
 
 const Register = ({ onRegister }) => {
   const [form, setForm] = useState({
@@ -56,40 +56,42 @@ const Register = ({ onRegister }) => {
   };
 
   return (
-    <div>
-      <h1>Register Page</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <InputField
-          type="text"
-          placeholder="Ime"
-          value={form.ime}
-          onChange={handleChange}
-          name="ime"
-        />
-        <InputField
-          type="email"
-          placeholder="Your Email"
-          value={form.email}
-          onChange={handleChange}
-          name="email"
-        />
-        <InputField
-          type="password"
-          placeholder="Your Password"
-          value={form.password}
-          onChange={handleChange}
-          name="password"
-        />
-        <InputField
-          type="password"
-          placeholder="Confirm Your Password"
-          value={form.password_confirmation}
-          onChange={handleChange}
-          name="password_confirmation"
-        />
-        <Button type="submit" text="Register" />
-      </form>
+    <div className="register-page">
+      <div className="register-container">
+        <h1>Register Page</h1>
+        {error && <p className="error-message">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <InputField
+            type="text"
+            placeholder="Ime"
+            value={form.ime}
+            onChange={handleChange}
+            name="ime"
+          />
+          <InputField
+            type="email"
+            placeholder="Your Email"
+            value={form.email}
+            onChange={handleChange}
+            name="email"
+          />
+          <InputField
+            type="password"
+            placeholder="Your Password"
+            value={form.password}
+            onChange={handleChange}
+            name="password"
+          />
+          <InputField
+            type="password"
+            placeholder="Confirm Your Password"
+            value={form.password_confirmation}
+            onChange={handleChange}
+            name="password_confirmation"
+          />
+          <Button type="submit" text="Register" />
+        </form>
+      </div>
       <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
         <h2>Registration Successful!</h2>
         <p>You have successfully registered. You will be redirected to the login page.</p>
