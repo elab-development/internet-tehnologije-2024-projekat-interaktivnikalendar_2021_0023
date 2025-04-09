@@ -24,4 +24,17 @@
     cursor: pointer;
     border-radius: 5px;
   }
-  
+
+  .btnCreate button:hover{
+  background-color: #0056b3;
+  }
+
+  .joined-event {
+    background-color: red !important;
+    color: white !important;
+    border-radius: 50%;
+  }
+
+  .calendar-page h1 {
+    color: #0056b3;
+  }
