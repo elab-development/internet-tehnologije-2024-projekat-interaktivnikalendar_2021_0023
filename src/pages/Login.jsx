@@ -3,6 +3,8 @@ import InputField from "../components/InputField";
 import Button from "../components/Button";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import './Login.css';
+
 
 const Login = ({ onLogin }) => {
   const [form, setForm] = useState({
@@ -33,26 +35,28 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div>
-      <h1>Login Page</h1>
-      <form onSubmit={handleSubmit}>
-        <InputField
-          type="email"
-          placeholder="Your Email"
-          value={form.email}
-          onChange={handleChange}
-          name="email"
-        />
-        <InputField
-          type="password"
-          placeholder="Your Password"
-          value={form.password}
-          onChange={handleChange}
-          name="password"
-        />
-        <Button type="submit" text="Login" />
-        <Button type="button" text="Register" onClick={() => navigate("/register")} />
-      </form>
+    <div className="login-page">
+      <div className="login-container">
+        <h1>Login Page</h1>
+        <form onSubmit={handleSubmit}>
+          <InputField
+            type="email"
+            placeholder="Your Email"
+            value={form.email}
+            onChange={handleChange}
+            name="email"
+          />
+          <InputField
+            type="password"
+            placeholder="Your Password"
+            value={form.password}
+            onChange={handleChange}
+            name="password"
+          />
+          <Button type="submit" text="Login" />
+          <Button type="button" text="Register" onClick={() => navigate("/register")} />
+        </form>
+      </div>
     </div>
   );
 };

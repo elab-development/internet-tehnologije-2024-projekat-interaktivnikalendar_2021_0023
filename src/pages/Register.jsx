@@ -5,6 +5,7 @@ import Modal from "../components/Modal";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+
 const Register = ({ onRegister }) => {
   const [form, setForm] = useState({
     ime: "",
