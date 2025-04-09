@@ -15,7 +15,7 @@
     padding: 30px;
   }
 
- .btnCreate button {
+ .btn-create button {
     margin-top: 10px;
     padding: 10px 20px;
     background-color: #007BFF;
@@ -25,7 +25,7 @@
     border-radius: 5px;
   }
 
-  .btnCreate button:hover{
+  .calendar-page button:hover{
   background-color: #0056b3;
   }
 

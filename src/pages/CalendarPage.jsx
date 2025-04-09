@@ -17,12 +17,14 @@ const CalendarPage = () => {
     datum_zavrsetka: '',
   });
   const [events, setEvents] = useState([]);
-  const [joinedEvents, setJoinedEvents] = useState([]); // Čuva pridružene događaje
-  const [selectedEvent, setSelectedEvent] = useState(null); // Čuva selektovani događaj za prikaz detalja
+  const [joinedEvents, setJoinedEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [ulogaId, setUlogaId] = useState(null);
 
   useEffect(() => {
     fetchEvents();
     fetchJoinedEvents();
+    fetchUserRole();
   }, []);
 
   const fetchEvents = () => {
@@ -55,29 +57,49 @@ const CalendarPage = () => {
       .catch((error) => console.error('Error fetching joined events:', error));
   };
 
-  const handleDateClick = (selectedDate) => {
-    setDate(selectedDate);
+  const fetchUserRole = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found');
+      return;
+    }
 
-    // Proveravamo da li postoji događaj za odabrani datum
+    axios
+      .get('http://localhost:8000/api/user-details', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        const userUlogaId = response.data.uloga_id;
+        setUlogaId(userUlogaId);
+      })
+      .catch((error) => console.error('Error fetching user role:', error));
+  };
+
+  const handleDateClick = (selectedDate) => {
     const event = joinedEvents.find(
       (event) =>
         new Date(event.datum_pocetka).toDateString() === selectedDate.toDateString()
     );
 
     if (event) {
-      // Ako postoji događaj, postavljamo ga kao selektovani događaj
       setSelectedEvent(event);
-    } else {
-      // Ako ne postoji događaj, otvaramo modal za kreiranje novog događaja
-      setEventDetails({
-        naziv: '',
-        opis: '',
-        datum_pocetka: selectedDate.toLocaleDateString('en-CA'), // Koristimo 'en-CA' za format "YYYY-MM-DD"
-        datum_zavrsetka: '', // Datum završetka ostavljamo prazan
-      });
-      setSelectedEvent(null); // Resetujemo selektovani događaj
+      setModalOpen(true);
+      return;
     }
 
+    if (ulogaId !== 1) {
+      console.warn('User is not Admin. Cannot create new event.');
+      return;
+    }
+
+    setDate(selectedDate);
+    setEventDetails({
+      naziv: '',
+      opis: '',
+      datum_pocetka: selectedDate.toLocaleDateString('en-CA'),
+      datum_zavrsetka: '',
+    });
+    setSelectedEvent(null);
     setModalOpen(true);
   };
 
@@ -98,52 +120,25 @@ const CalendarPage = () => {
 
     const eventData = {
       ...eventDetails,
-      korisnik_id: 1, // Uvek postavi korisnik_id na 1
+      korisnik_id: 1,
     };
 
     axios
       .post('http://localhost:8000/api/dogadjaji', eventData, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((response) => {
-        console.log(response.data);
+      .then(() => {
         setModalOpen(false);
         fetchEvents();
       })
       .catch((error) => {
         console.error('Error creating event', error);
-        if (error.response) {
-          console.error('Error status', error.response.status);
-          console.error('Error data', error.response.data);
-        }
       });
-  };
-
-  const handleCreateNewEvent = () => {
-    // Resetujemo formu za kreiranje novog događaja
-    setEventDetails({
-      naziv: '',
-      opis: '',
-      datum_pocetka: '',
-      datum_zavrsetka: '',
-    });
-    setSelectedEvent(null); // Resetujemo selektovani događaj
-    setModalOpen(true);
-  };
-
-  const tileClassName = ({ date, view }) => {
-    if (view === 'month') {
-      const isStartDate = joinedEvents.some(
-        (event) =>
-          new Date(event.datum_pocetka).toDateString() === date.toDateString()
-      );
-      return isStartDate ? 'joined-event' : null;
-    }
   };
 
   const handleCloseModal = () => {
     setModalOpen(false);
-    setSelectedEvent(null); // Resetujemo selektovani događaj
+    setSelectedEvent(null);
   };
 
   return (
@@ -152,84 +147,79 @@ const CalendarPage = () => {
       <Calendar
         onChange={handleDateClick}
         value={date}
-        tileClassName={tileClassName}
+        tileClassName={({ date, view }) => {
+          if (view === 'month') {
+            const isStartDate = joinedEvents.some(
+              (event) =>
+                new Date(event.datum_pocetka).toDateString() === date.toDateString()
+            );
+            return isStartDate ? 'joined-event' : null;
+          }
+        }}
       />
-      <div className="btnCreate">
-        <Button
-          type="button"
-          text="Create New Event"
-          onClick={handleCreateNewEvent} // Otvaramo modal za kreiranje novog događaja
-        />
-      </div>
-      <Modal isOpen={modalOpen} onClose={handleCloseModal}>
-        {selectedEvent ? (
-          // Prikaz detalja selektovanog događaja
-          <div>
-            <h2>Detalji događaja</h2>
-            <p><strong>Naziv:</strong> {selectedEvent.naziv}</p>
-            <p><strong>Opis:</strong> {selectedEvent.opis}</p>
-            <p><strong>Početak:</strong> {new Date(selectedEvent.datum_pocetka).toLocaleDateString()}</p>
-            <p><strong>Kraj:</strong> {new Date(selectedEvent.datum_zavrsetka).toLocaleDateString()}</p>
-          </div>
-        ) : (
-          // Forma za kreiranje novog događaja
-          <div>
-            <div style={styles.modalHeader}>
-              <h2>Create Event</h2>
-              <button style={styles.closeButton} onClick={handleCloseModal}>
-                ×
-              </button>
+      {ulogaId === 1 && (
+        <div className="btn-create">
+          <Button
+            type="button"
+            text="Create New Event"
+            onClick={() => {
+              setEventDetails({
+                naziv: '',
+                opis: '',
+                datum_pocetka: '',
+                datum_zavrsetka: '',
+              });
+              setSelectedEvent(null);
+              setModalOpen(true);
+            }}
+          />
+        </div>
+      )}
+      {modalOpen && (
+        <Modal isOpen={modalOpen} onClose={handleCloseModal}>
+          {selectedEvent ? (
+            <div>
+              <h2>Detalji događaja</h2>
+              <p><strong>Naziv:</strong> {selectedEvent.naziv}</p>
+              <p><strong>Opis:</strong> {selectedEvent.opis}</p>
+              <p><strong>Početak:</strong> {selectedEvent.datum_pocetka}</p>
+              <p><strong>Kraj:</strong> {selectedEvent.datum_zavrsetka}</p>
             </div>
+          ) : (
             <form onSubmit={handleSubmit}>
               <InputField
                 type="text"
-                placeholder="Event Name"
+                placeholder="Naziv događaja"
                 value={eventDetails.naziv}
                 onChange={handleChange}
                 name="naziv"
               />
               <InputField
                 type="text"
-                placeholder="Description"
+                placeholder="Opis"
                 value={eventDetails.opis}
                 onChange={handleChange}
                 name="opis"
               />
               <InputField
                 type="date"
-                placeholder="Start Date"
                 value={eventDetails.datum_pocetka}
                 onChange={handleChange}
                 name="datum_pocetka"
               />
               <InputField
                 type="date"
-                placeholder="End Date"
                 value={eventDetails.datum_zavrsetka}
                 onChange={handleChange}
                 name="datum_zavrsetka"
               />
-              <Button type="submit" text="Create Event" />
+              <Button type="submit" text="Kreiraj događaj" />
             </form>
-          </div>
-        )}
-      </Modal>
+          )}
+        </Modal>
+      )}
     </div>
   );
-};
-
-const styles = {
-  modalHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  closeButton: {
-    background: 'none',
-    border: 'none',
-    fontSize: '1.5rem',
-    cursor: 'pointer',
-  },
 };
 
 export default CalendarPage;
