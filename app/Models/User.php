@@ -18,4 +18,10 @@ class User extends Authenticatable
     {
         return $this->hasOne(Korisnik::class);
     }
+
+    public function joinedEvents()
+    {   
+    return $this->belongsToMany(Dogadjaj::class, 'dogadjaj_korisnik', 'korisnik_id', 'dogadjaj_id');
+    }
+
 }

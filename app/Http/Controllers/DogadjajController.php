@@ -79,11 +79,35 @@ class DogadjajController extends Controller
         }
     }
 
-    public function getJoinedEvents(Request $request)
+    public function getJoinedEvents()
     {
         $korisnik = auth()->user();
-        $joinedEvents = $korisnik->joinedEvents;
 
-        return response()->json($joinedEvents);
+        if (!$korisnik) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        return response()->json($korisnik->joinedEvents()->get()); // Dodato ->get()
     }
+
+    public function leaveEvent($id)
+    {
+        try {
+            $korisnik = auth()->user();
+            $dogadjaj = Dogadjaj::findOrFail($id);
+
+            // Proveri da li je korisnik pridružen događaju
+            if (!$dogadjaj->participants()->where('korisnik_id', $korisnik->id)->exists()) {
+                return response()->json(['message' => 'Niste pridruženi ovom događaju'], 400);
+            }
+
+            $dogadjaj->participants()->detach($korisnik->id);
+
+            return response()->json(['message' => 'Uspešno otkazan događaj']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Greška pri otkazivanju događaja'], 500);
+        }
+    }
+
+
 }

@@ -43,20 +43,25 @@ class AuthController extends Controller
             'email' => 'required|string|email',
             'password' => 'required|string',
         ]);
-
-        if (!Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']])) {
+    
+        if (!Auth::attempt($credentials)) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
-
+    
         $user = Auth::user();
         $korisnik = Korisnik::where('email', $credentials['email'])->first();
-
+    
+        if (!$korisnik) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+    
         $token = $user->createToken('auth_token')->plainTextToken;
-
+    
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'role' => $korisnik->uloga->naziv,
+            'role' => $korisnik->uloga->naziv ?? 'User',
+            'user_id' => $korisnik->id,
         ], 200);
     }
 

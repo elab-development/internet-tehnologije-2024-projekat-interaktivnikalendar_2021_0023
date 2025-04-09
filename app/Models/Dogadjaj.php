@@ -15,4 +15,9 @@ class Dogadjaj extends Model
     {
         return $this->belongsTo(Korisnik::class);
     }
+
+    public function participants()
+{
+    return $this->belongsToMany(Korisnik::class, 'dogadjaj_korisnik', 'dogadjaj_id', 'korisnik_id');
+}
 }

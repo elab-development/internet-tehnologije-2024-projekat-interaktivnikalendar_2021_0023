@@ -5,9 +5,34 @@ namespace App\Http\Controllers;
 use App\Models\Korisnik;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class KorisnikController extends Controller
 {
+    public function getUserDetails()
+    {
+        $user = Auth::user(); // Dobijamo trenutno prijavljenog korisnika
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $korisnik = $user->korisnik; // Relacija između `users` i `korisnici`
+
+        if (!$korisnik) {
+            return response()->json(['error' => 'Korisnik nije pronađen'], 404);
+        }
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'uloga_id' => $korisnik->uloga_id, // Dodajemo uloga_id
+            'created_at' => $user->created_at,
+            'updated_at' => $user->updated_at,
+        ]);
+    }
+    
     public function index()
     {
         return Korisnik::all();

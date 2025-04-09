@@ -37,4 +37,10 @@ class Korisnik extends Model
     {
         $this->attributes['sifra'] = bcrypt($value);
     }
+
+    public function joinedEvents()
+    {
+    return $this->belongsToMany(Dogadjaj::class, 'dogadjaj_korisnik', 'korisnik_id', 'dogadjaj_id');
+    }
+
 }

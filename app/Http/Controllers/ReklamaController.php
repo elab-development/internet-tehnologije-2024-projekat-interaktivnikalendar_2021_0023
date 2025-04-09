@@ -59,4 +59,20 @@ class ReklamaController extends Controller
         return response()->json([], 200);
     }
 
+    public function getRandomReklama()
+    {
+        $reklama = Reklama::inRandomOrder()->first(); // Nasumično uzimamo reklamu
+
+        if (!$reklama) {
+            return response()->json(['message' => 'Nema reklama'], 404);
+        }
+
+        return response()->json([
+            'tekst' => $reklama->sadrzaj, // Tekst reklame
+            'link' => $reklama->link // Link reklame
+        ]);
+    }
+
+
+
 }

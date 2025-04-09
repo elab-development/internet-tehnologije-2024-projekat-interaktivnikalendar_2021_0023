@@ -8,16 +8,22 @@ use App\Http\Controllers\DogadjajController;
 use App\Http\Controllers\PretplataController;
 use App\Http\Controllers\ReklamaController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ContactController;
 
+Route::middleware('auth:sanctum')->get('/user-details', [KorisnikController::class, 'getUserDetails']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::post('/contact', [ContactController::class, 'store'])->middleware('auth:sanctum');
+
+
+Route::get('reklama', [ReklamaController::class, 'getRandomReklama']);
+
 Route::put('dogadjaji/{id}/join', [DogadjajController::class, 'joinEvent'])->middleware('auth:sanctum');
 Route::get('dogadjaji/joined', [DogadjajController::class, 'getJoinedEvents'])->middleware('auth:sanctum');
-Route::put('dogadjaji/{id}/join', [DogadjajController::class, 'joinEvent']);
-Route::get('dogadjaji/joined', [DogadjajController::class, 'getJoinedEvents'])->middleware('auth:sanctum');
+Route::delete('dogadjaji/{id}/leave', [DogadjajController::class, 'leaveEvent'])->middleware('auth:sanctum');
 // Rute za Korisnik resurs
 //Route::apiResource('korisnici', KorisnikController::class);
 
