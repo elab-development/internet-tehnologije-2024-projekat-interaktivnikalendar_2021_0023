@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import Breadcrumbs from "./components/Breadcrumbs"; // Import Breadcrumbs
 import Home from "./pages/Home";
 import Events from "./pages/Events";
 import Contact from "./pages/Contact";
@@ -9,12 +10,12 @@ import Register from "./pages/Register";
 import CalendarPage from "./pages/CalendarPage";
 import Banner from "./components/Banner";
 import JoinedEvents from "./pages/JoinedEvents";
-import axios from "axios"; // Dodaj axios ako već nije tu
+import axios from "axios";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState("");
-  const [events, setEvents] = useState([]); // Dodali smo events state
+  const [events, setEvents] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -22,7 +23,7 @@ function App() {
     if (token) {
       setIsAuthenticated(true);
       setUserRole(role);
-      fetchEvents(); // Pozivamo učitavanje događaja pri pokretanju aplikacije
+      fetchEvents();
     }
   }, []);
 
@@ -47,7 +48,7 @@ function App() {
   const handleLogin = (role) => {
     setIsAuthenticated(true);
     setUserRole(role);
-    fetchEvents(); // Kada se korisnik uloguje, osveži listu događaja
+    fetchEvents();
   };
 
   const handleLogout = () => {
@@ -62,6 +63,7 @@ function App() {
       {isAuthenticated ? (
         <>
           <Navbar isAuthenticated={isAuthenticated} onLogout={handleLogout} />
+          <Breadcrumbs /> {/* Dodaj Breadcrumbs ovde */}
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/events" element={<Events events={events} fetchEvents={fetchEvents} />} />
