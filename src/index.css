@@ -46,3 +46,42 @@ nav ul li button:hover {
   background-color: #b60303;
 }
 
+.breadcrumbs ul {
+  list-style: none;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.breadcrumbs li {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumbs li a {
+  text-decoration: none;
+  color: #007bff;
+}
+
+.breadcrumbs li a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumbs li span {
+  color: #e10505;
+  font-size: large;
+}
+
+.breadcrumbs li::after {
+  content: ">";
+  margin-left: 0.5rem;
+  color: #aaa;
+}
+
+.breadcrumbs li:last-child::after {
+  content: "";
+}
+
