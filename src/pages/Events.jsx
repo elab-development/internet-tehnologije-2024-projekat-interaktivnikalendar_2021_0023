@@ -1,72 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import useFetchDogadjaji from "../hooks/useFetchDogadjaji";
 import axios from "axios";
 import "./Events.css";
 
 const Events = () => {
-  const [events, setEvents] = useState([]);
-  const [joinedEvents, setJoinedEvents] = useState([]);
   const [filters, setFilters] = useState({ naziv: "", opis: "" });
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [perPage, setPerPage] = useState(5);
 
-  useEffect(() => {
-    fetchEvents();
-    fetchJoinedEvents();
-  }, [filters, page, perPage]);
-
-  const fetchEvents = () => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      console.error("No token found");
-      return;
-    }
-
-    axios
-      .get("http://localhost:8000/api/dogadjaji", {
-        params: { ...filters, page, per_page: perPage },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
-        setEvents(response.data.data || []);
-        setTotalPages(response.data.last_page || 1);
-      })
-      .catch((error) => {
-        console.error("Error fetching events:", error);
-        setEvents([]);
-      });
-  };
-
-  const fetchJoinedEvents = () => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      console.error("No token found");
-      return;
-    }
-
-    axios
-      .get("http://localhost:8000/api/dogadjaji/joined", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
-        setJoinedEvents(response.data || []);
-      })
-      .catch((error) => {
-        console.error("Error fetching joined events:", error);
-        setJoinedEvents([]);
-      });
-  };
+  // Korišćenje custom hook-a
+  const { events, joinedEvents, totalPages, loading, error } = useFetchDogadjaji(filters, page, perPage);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
-    setPage(1);
+    setPage(1); // Resetujemo na prvu stranicu nakon promene filtera
   };
 
   const handlePerPageChange = (e) => {
@@ -83,12 +31,13 @@ const Events = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-      fetchJoinedEvents();
-      fetchEvents();
     } catch (error) {
       console.error("Error joining event:", error);
     }
   };
+
+  if (loading) return <p>Učitavanje događaja...</p>;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className="events-page">
