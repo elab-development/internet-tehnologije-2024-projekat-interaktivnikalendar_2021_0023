@@ -10,6 +10,8 @@ use App\Http\Controllers\ReklamaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
 
+Route::get('test-kes', [DogadjajController::class, 'testKesiranje']);
+
 Route::get('dogadjaji/paginacija', [DogadjajController::class, 'paginateAndFilter'])
     ->middleware('auth:sanctum');
 
