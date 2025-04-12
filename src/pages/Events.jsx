@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./Events.css"; // ili "../event.css" ako se nalazi direktno u src
+import "./Events.css";
 
 const Events = () => {
   const [events, setEvents] = useState([]);
   const [joinedEvents, setJoinedEvents] = useState([]);
+  const [filters, setFilters] = useState({ naziv: "", opis: "" });
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [perPage, setPerPage] = useState(5);
 
   useEffect(() => {
     fetchEvents();
-    fetchJoinedEvents(); // Učitaj pridružene događaje pri pokretanju
-  }, []);
+    fetchJoinedEvents();
+  }, [filters, page, perPage]);
 
   const fetchEvents = () => {
     const token = localStorage.getItem("token");
@@ -21,14 +25,19 @@ const Events = () => {
 
     axios
       .get("http://localhost:8000/api/dogadjaji", {
+        params: { ...filters, page, per_page: perPage },
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
       .then((response) => {
-        setEvents(response.data);
+        setEvents(response.data.data || []);
+        setTotalPages(response.data.last_page || 1);
       })
-      .catch((error) => console.error("Error fetching events:", error));
+      .catch((error) => {
+        console.error("Error fetching events:", error);
+        setEvents([]);
+      });
   };
 
   const fetchJoinedEvents = () => {
@@ -48,7 +57,21 @@ const Events = () => {
       .then((response) => {
         setJoinedEvents(response.data || []);
       })
-      .catch((error) => console.error("Error fetching joined events:", error));
+      .catch((error) => {
+        console.error("Error fetching joined events:", error);
+        setJoinedEvents([]);
+      });
+  };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters({ ...filters, [name]: value });
+    setPage(1);
+  };
+
+  const handlePerPageChange = (e) => {
+    setPerPage(Number(e.target.value));
+    setPage(1);
   };
 
   const handleJoin = async (eventId) => {
@@ -60,36 +83,70 @@ const Events = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-  
-      console.log("Pridruženi događaju:", eventId);
-      fetchJoinedEvents(); // Osveži listu pridruženih događaja
-      fetchEvents(); // Osveži dugme "Pridruži se"
+      fetchJoinedEvents();
+      fetchEvents();
     } catch (error) {
-      console.error("Greška pri pridruživanju događaju:", error);
+      console.error("Error joining event:", error);
     }
   };
 
   return (
     <div className="events-page">
+      <div className="filters">
+        <input
+          type="text"
+          name="naziv"
+          placeholder="Filtriraj po nazivu"
+          value={filters.naziv}
+          onChange={handleFilterChange}
+        />
+        <input
+          type="text"
+          name="opis"
+          placeholder="Filtriraj po opisu"
+          value={filters.opis}
+          onChange={handleFilterChange}
+        />
+        <select value={perPage} onChange={handlePerPageChange}>
+          <option value={5}>5 po stranici</option>
+          <option value={10}>10 po stranici</option>
+          <option value={20}>20 po stranici</option>
+        </select>
+      </div>
       <div className="events-container">
-        <h2>Events</h2>
-        {events.map((event) => {
-          const isJoined = joinedEvents.some((e) => e.id === event.id); // Proveri da li je korisnik već pridružen
+        <h2>Događaji</h2>
+        {events.length > 0 ? (
+          events.map((event) => {
+            const isJoined = joinedEvents.some((e) => e.id === event.id);
 
-          return (
-            <div key={event.id} className="event-card">
-              <h3>{event.naziv}</h3>
-              <p>{event.opis}</p>
-              <p>
-                {new Date(event.datum_pocetka).toLocaleDateString()} -{" "}
-                {new Date(event.datum_zavrsetka).toLocaleDateString()}
-              </p>
-              <button onClick={() => handleJoin(event.id)} disabled={isJoined}>
-                {isJoined ? "Već ste pridruženi" : "Pridruži se"}
-              </button>
-            </div>
-          );
-        })}
+            return (
+              <div key={event.id} className="event-card">
+                <h3>{event.naziv}</h3>
+                <p>{event.opis}</p>
+                <p>
+                  {new Date(event.datum_pocetka).toLocaleDateString()} -{" "}
+                  {new Date(event.datum_zavrsetka).toLocaleDateString()}
+                </p>
+                <button onClick={() => handleJoin(event.id)} disabled={isJoined}>
+                  {isJoined ? "Već ste pridruženi" : "Pridruži se"}
+                </button>
+              </div>
+            );
+          })
+        ) : (
+          <p>Nema dostupnih događaja.</p>
+        )}
+        <div className="pagination">
+          <button onClick={() => setPage(page - 1)} disabled={page === 1}>
+            Prethodna
+          </button>
+          <span>
+            Stranica {page} od {totalPages}
+          </span>
+          <button onClick={() => setPage(page + 1)} disabled={page === totalPages}>
+            Sledeća
+          </button>
+        </div>
       </div>
     </div>
   );
