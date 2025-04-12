@@ -1,25 +1,111 @@
-import React, { useState } from "react";
-import useFetchDogadjaji from "../hooks/useFetchDogadjaji";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./Events.css";
 
 const Events = () => {
+  const [events, setEvents] = useState([]);
+  const [joinedEvents, setJoinedEvents] = useState([]);
   const [filters, setFilters] = useState({ naziv: "", opis: "" });
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [perPage, setPerPage] = useState(5);
 
-  // Korišćenje custom hook-a
-  const { events, joinedEvents, totalPages, loading, error } = useFetchDogadjaji(filters, page, perPage);
+  // Keš za događaje
+  const cacheKey = `events_cache_page_${page}_filters_${JSON.stringify(filters)}_perPage_${perPage}`;
+
+  useEffect(() => {
+    fetchEvents();
+    fetchJoinedEvents();
+  }, [filters, page, perPage]);
+
+  const fetchEvents = () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      console.error("No token found");
+      return;
+    }
+
+    // Proveri keš
+    const cachedData = localStorage.getItem(cacheKey);
+    if (cachedData) {
+      const parsedData = JSON.parse(cachedData);
+      setEvents(parsedData.events || []);
+      setTotalPages(parsedData.totalPages || 1);
+      return;
+    }
+
+    // Ako nema keša, pravi API poziv
+    axios
+      .get("http://localhost:8000/api/dogadjaji", {
+        params: { ...filters, page, per_page: perPage },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        const data = {
+          events: response.data.data || [],
+          totalPages: response.data.last_page || 1,
+        };
+        setEvents(data.events);
+        setTotalPages(data.totalPages);
+
+        // Sačuvaj u kešu
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+      })
+      .catch((error) => {
+        console.error("Error fetching events:", error);
+        setEvents([]);
+      });
+  };
+
+  const fetchJoinedEvents = () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      console.error("No token found");
+      return;
+    }
+
+    axios
+      .get("http://localhost:8000/api/dogadjaji/joined", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        setJoinedEvents(response.data || []);
+      })
+      .catch((error) => {
+        console.error("Error fetching joined events:", error);
+        setJoinedEvents([]);
+      });
+  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
-    setPage(1); // Resetujemo na prvu stranicu nakon promene filtera
+    setPage(1);
+
+    // Očistimo keš za trenutne filtere
+    for (const key in localStorage) {
+      if (key.startsWith("events_cache_page_")) {
+        localStorage.removeItem(key);
+      }
+    }
   };
 
   const handlePerPageChange = (e) => {
     setPerPage(Number(e.target.value));
     setPage(1);
+
+    // Očistimo keš kada se promeni broj stavki po stranici
+    for (const key in localStorage) {
+      if (key.startsWith("events_cache_page_")) {
+        localStorage.removeItem(key);
+      }
+    }
   };
 
   const handleJoin = async (eventId) => {
@@ -31,13 +117,19 @@ const Events = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
+      fetchJoinedEvents();
+      fetchEvents();
+
+      // Očistimo keš jer je došlo do promene u podacima
+      for (const key in localStorage) {
+        if (key.startsWith("events_cache_page_")) {
+          localStorage.removeItem(key);
+        }
+      }
     } catch (error) {
       console.error("Error joining event:", error);
     }
   };
-
-  if (loading) return <p>Učitavanje događaja...</p>;
-  if (error) return <p>{error}</p>;
 
   return (
     <div className="events-page">

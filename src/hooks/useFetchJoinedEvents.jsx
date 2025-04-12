@@ -20,29 +20,51 @@ const useFetchJoinedEvents = () => {
       try {
         setLoading(true);
 
-        // Provera keša
         const cachedJoinedEvents = JSON.parse(localStorage.getItem("joinedEvents"));
         const cacheExpiry = localStorage.getItem("joinedEventsExpiry");
 
         if (cachedJoinedEvents && cacheExpiry && new Date().getTime() < cacheExpiry) {
-          // Ako keš postoji i nije istekao
           console.log("Koristim keširane pridružene događaje");
           setJoinedEvents(cachedJoinedEvents);
           setLoading(false);
           return;
         }
 
-        // Ako keš ne postoji ili je istekao
         console.log("Keš je istekao ili ne postoji. Dohvatam pridružene događaje sa servera...");
         const response = await axios.get("http://localhost:8000/api/dogadjaji/joined", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        setJoinedEvents(response.data || []);
+        const events = response.data || [];
 
-        // Keširanje podataka
-        localStorage.setItem("joinedEvents", JSON.stringify(response.data || []));
-        localStorage.setItem("joinedEventsExpiry", new Date().getTime() + 3600000); // 1 sat
+        // Za svaki događaj proveravamo da li postoji beleška
+        const enrichedEvents = await Promise.all(
+          events.map(async (event) => {
+            try {
+              const noteRes = await axios.get(`http://localhost:8000/api/notes/${event.id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              return {
+                ...event,
+                has_note: true,
+                note_content: noteRes.data.note_content,
+                note_url: noteRes.data.note_url || null,
+              };
+            } catch (err) {
+              return {
+                ...event,
+                has_note: false,
+                note_content: null,
+                note_url: null,
+              };
+            }
+          })
+        );
+
+        setJoinedEvents(enrichedEvents);
+
+        localStorage.setItem("joinedEvents", JSON.stringify(enrichedEvents));
+        localStorage.setItem("joinedEventsExpiry", new Date().getTime() + 3600000);
 
         setLoading(false);
       } catch (err) {
