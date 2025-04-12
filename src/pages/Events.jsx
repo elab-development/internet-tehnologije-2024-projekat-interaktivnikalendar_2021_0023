@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./Events.css";
 
-const Events = () => {
+const Events = ({ onRefresh }) => {
   const [events, setEvents] = useState([]);
   const [joinedEvents, setJoinedEvents] = useState([]);
   const [filters, setFilters] = useState({ naziv: "", opis: "" });
@@ -83,31 +83,6 @@ const Events = () => {
       });
   };
 
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters({ ...filters, [name]: value });
-    setPage(1);
-
-    // Očistimo keš za trenutne filtere
-    for (const key in localStorage) {
-      if (key.startsWith("events_cache_page_")) {
-        localStorage.removeItem(key);
-      }
-    }
-  };
-
-  const handlePerPageChange = (e) => {
-    setPerPage(Number(e.target.value));
-    setPage(1);
-
-    // Očistimo keš kada se promeni broj stavki po stranici
-    for (const key in localStorage) {
-      if (key.startsWith("events_cache_page_")) {
-        localStorage.removeItem(key);
-      }
-    }
-  };
-
   const handleJoin = async (eventId) => {
     try {
       await axios.put(
@@ -119,6 +94,11 @@ const Events = () => {
       );
       fetchJoinedEvents();
       fetchEvents();
+
+      // Signaliziraj osvežavanje pridruženih događaja
+      if (onRefresh) {
+        onRefresh();
+      }
 
       // Očistimo keš jer je došlo do promene u podacima
       for (const key in localStorage) {
@@ -139,16 +119,16 @@ const Events = () => {
           name="naziv"
           placeholder="Filtriraj po nazivu"
           value={filters.naziv}
-          onChange={handleFilterChange}
+          onChange={(e) => setFilters({ ...filters, naziv: e.target.value })}
         />
         <input
           type="text"
           name="opis"
           placeholder="Filtriraj po opisu"
           value={filters.opis}
-          onChange={handleFilterChange}
+          onChange={(e) => setFilters({ ...filters, opis: e.target.value })}
         />
-        <select value={perPage} onChange={handlePerPageChange}>
+        <select value={perPage} onChange={(e) => setPerPage(Number(e.target.value))}>
           <option value={5}>5 po stranici</option>
           <option value={10}>10 po stranici</option>
           <option value={20}>20 po stranici</option>

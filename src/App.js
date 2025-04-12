@@ -9,12 +9,13 @@ import Register from "./pages/Register";
 import CalendarPage from "./pages/CalendarPage";
 import Banner from "./components/Banner";
 import JoinedEvents from "./pages/JoinedEvents";
-import axios from "axios"; // Dodaj axios ako već nije tu
+import axios from "axios";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState("");
-  const [events, setEvents] = useState([]); // Dodali smo events state
+  const [events, setEvents] = useState([]);
+  const [refreshFlag, setRefreshFlag] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -22,7 +23,7 @@ function App() {
     if (token) {
       setIsAuthenticated(true);
       setUserRole(role);
-      fetchEvents(); // Pozivamo učitavanje događaja pri pokretanju aplikacije
+      fetchEvents();
     }
   }, []);
 
@@ -47,7 +48,7 @@ function App() {
   const handleLogin = (role) => {
     setIsAuthenticated(true);
     setUserRole(role);
-    fetchEvents(); // Kada se korisnik uloguje, osveži listu događaja
+    fetchEvents();
   };
 
   const handleLogout = () => {
@@ -57,6 +58,8 @@ function App() {
     setUserRole("");
   };
 
+  const triggerRefresh = () => setRefreshFlag((prev) => !prev);
+
   return (
     <Router>
       {isAuthenticated ? (
@@ -64,10 +67,10 @@ function App() {
           <Navbar isAuthenticated={isAuthenticated} onLogout={handleLogout} />
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/events" element={<Events events={events} fetchEvents={fetchEvents} />} />
+            <Route path="/events" element={<Events events={events} fetchEvents={fetchEvents} refreshEvents={triggerRefresh} />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/joined-events" element={<JoinedEvents refreshEvents={fetchEvents} />} />
+            <Route path="/joined-events" element={<JoinedEvents refreshEvents={fetchEvents} refreshFlag={refreshFlag} />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
           {userRole === "User" && <Banner />}
