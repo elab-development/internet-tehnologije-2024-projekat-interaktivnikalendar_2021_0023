@@ -9,6 +9,12 @@ use App\Http\Controllers\PretplataController;
 use App\Http\Controllers\ReklamaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\NoteController;
+
+
+Route::get('/notes/{dogadjaj_id}', [NoteController::class, 'show']);
+Route::delete('/notes/{dogadjaj_id}', [NoteController::class, 'destroy']);
+Route::post('/notes/upload', [NoteController::class, 'upload']);
 
 Route::get('test-kes', [DogadjajController::class, 'testKesiranje']);
 
