@@ -7,9 +7,28 @@ use Illuminate\Http\Request;
 
 class DogadjajController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Dogadjaj::all();
+        // Kreiranje query-ja za model Dogadjaj
+        $query = Dogadjaj::query();
+
+        // Filtriranje po nazivu
+        if ($request->has('naziv') && $request->input('naziv') !== '') {
+            $query->where('naziv', 'like', '%' . $request->input('naziv') . '%');
+        }
+
+        // Filtriranje po opisu
+        if ($request->has('opis') && $request->input('opis') !== '') {
+            $query->where('opis', 'like', '%' . $request->input('opis') . '%');
+        }
+
+        // Dobavljanje broja rezultata po stranici (podrazumevano 10)
+        $perPage = $request->input('per_page', 10);
+
+        // Vraćanje paginiranih rezultata
+        $dogadjaji = $query->paginate($perPage);
+
+        return response()->json($dogadjaji, 200);
     }
 
     public function store(Request $request)
@@ -108,6 +127,25 @@ class DogadjajController extends Controller
             return response()->json(['message' => 'Greška pri otkazivanju događaja'], 500);
         }
     }
+
+    public function paginateAndFilter(Request $request)
+{
+    $query = Dogadjaj::query();
+
+    // Filter za naziv
+    if ($request->has('naziv') && $request->input('naziv') !== '') {
+        $query->where('naziv', 'like', '%' . $request->input('naziv') . '%');
+    }
+
+    // Filter za opis (ako postoji)
+    if ($request->has('opis') && $request->input('opis') !== '') {
+        $query->where('opis', 'like', '%' . $request->input('opis') . '%');
+    }
+
+    $perPage = $request->input('per_page', 10);
+
+    return response()->json($query->paginate($perPage), 200);
+}
 
 
 }
