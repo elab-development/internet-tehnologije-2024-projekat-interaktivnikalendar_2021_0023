@@ -10,17 +10,17 @@ class DogadjajController extends Controller
 {
     public function testKesiranje()
     {
-    // Proveravamo da li keš postoji
-    if (Cache::has('dogadjaji_test')) {
-        $dogadjaji = Cache::get('dogadjaji_test');
-        return response()->json(['message' => 'Podaci iz keša', 'data' => $dogadjaji]);
-    }
+        // Proveravamo da li keš postoji
+        if (Cache::has('dogadjaji_test')) {
+            $dogadjaji = Cache::get('dogadjaji_test');
+            return response()->json(['message' => 'Podaci iz keša', 'data' => $dogadjaji]);
+        }
 
-    // Ako ne postoji, keširamo rezultate
-    $dogadjaji = Dogadjaj::all(); // Pretpostavka: dohvatamo sve događaje
-    Cache::put('dogadjaji_test', $dogadjaji, 60); // Keš traje 60 minuta
+        // Ako ne postoji, keširamo rezultate
+        $dogadjaji = Dogadjaj::all(); // Pretpostavka: dohvatamo sve događaje
+        Cache::put('dogadjaji_test', $dogadjaji, 60); // Keš traje 60 minuta
 
-    return response()->json(['message' => 'Keširan novi rezultat', 'data' => $dogadjaji]);
+        return response()->json(['message' => 'Keširan novi rezultat', 'data' => $dogadjaji]);
     }
 
 
