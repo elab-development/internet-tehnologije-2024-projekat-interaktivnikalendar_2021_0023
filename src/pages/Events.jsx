@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Modal from "../components/Modal";
 import "./Events.css";
 
 const Events = ({ onRefresh }) => {
@@ -11,6 +12,8 @@ const Events = ({ onRefresh }) => {
   const [perPage, setPerPage] = useState(5);
   const [isAdmin, setIsAdmin] = useState(false);
   const [deletedEventId, setDeletedEventId] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState(null);
 
   const cacheKey = `events_cache_page_${page}_filters_${JSON.stringify(filters)}_perPage_${perPage}`;
 
@@ -19,14 +22,6 @@ const Events = ({ onRefresh }) => {
     fetchJoinedEvents();
     checkIfAdmin();
   }, [filters, page, perPage]);
-
-  const clearCache = () => {
-    for (const key in localStorage) {
-      if (key.startsWith("events_cache_page_")) {
-        localStorage.removeItem(key);
-      }
-    }
-  };
 
   const checkIfAdmin = async () => {
     const token = localStorage.getItem("token");
@@ -40,6 +35,14 @@ const Events = ({ onRefresh }) => {
       if (role === 1) setIsAdmin(true);
     } catch (err) {
       console.error("Greška pri proveri uloge:", err);
+    }
+  };
+
+  const clearEventCache = () => {
+    for (const key in localStorage) {
+      if (key.startsWith("events_cache_page_")) {
+        localStorage.removeItem(key);
+      }
     }
   };
 
@@ -101,29 +104,36 @@ const Events = ({ onRefresh }) => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-      clearCache();
       fetchJoinedEvents();
       fetchEvents();
       if (onRefresh) onRefresh();
+      clearEventCache();
     } catch (error) {
       console.error("Error joining event:", error);
     }
   };
 
-  const handleDelete = async (eventId) => {
-    const confirmed = window.confirm("Da li ste sigurni da želite da obrišete događaj?");
-    if (!confirmed) return;
+  const confirmDelete = (eventId) => {
+    setEventToDelete(eventId);
+    setShowConfirmModal(true);
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (!eventToDelete) return;
 
     try {
-      await axios.delete(`http://localhost:8000/api/dogadjaji/${eventId}`, {
+      await axios.delete(`http://localhost:8000/api/dogadjaji/${eventToDelete}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      clearCache();
-      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventId));
-      setDeletedEventId(eventId);
+      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventToDelete));
+      clearEventCache();
+      setDeletedEventId(eventToDelete);
       setTimeout(() => setDeletedEventId(null), 3000);
     } catch (error) {
       console.error("Greška pri brisanju događaja:", error);
+    } finally {
+      setShowConfirmModal(false);
+      setEventToDelete(null);
     }
   };
 
@@ -165,14 +175,19 @@ const Events = ({ onRefresh }) => {
                 <p>
                   {new Date(event.datum_pocetka).toLocaleDateString()} - {new Date(event.datum_zavrsetka).toLocaleDateString()}
                 </p>
-                <button onClick={() => handleJoin(event.id)} disabled={isJoined}>
-                  {isJoined ? "Već ste pridruženi" : "Pridruži se"}
-                </button>
-                {isAdmin && (
-                  <button onClick={() => handleDelete(event.id)} className="delete-button">
-                    Obriši događaj
+                <div className="button-row">
+                  <button onClick={() => handleJoin(event.id)} disabled={isJoined}>
+                    {isJoined ? "Već ste pridruženi" : "Pridruži se"}
                   </button>
-                )}
+                  {isAdmin && (
+                    <button
+                      onClick={() => confirmDelete(event.id)}
+                      className="delete-button"
+                    >
+                      Obriši događaj
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })
@@ -191,6 +206,17 @@ const Events = ({ onRefresh }) => {
           </button>
         </div>
       </div>
+      <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)}>
+        <h3>Da li ste sigurni da želite da obrišete događaj?</h3>
+        <div className="modal-actions">
+          <button onClick={handleDeleteConfirmed} className="delete-button">
+            Da, obriši
+          </button>
+          <button onClick={() => setShowConfirmModal(false)}>
+            Odustani
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };
