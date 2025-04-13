@@ -9,24 +9,44 @@ const Events = ({ onRefresh }) => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [perPage, setPerPage] = useState(5);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [deletedEventId, setDeletedEventId] = useState(null);
 
-  // Keš za događaje
   const cacheKey = `events_cache_page_${page}_filters_${JSON.stringify(filters)}_perPage_${perPage}`;
 
   useEffect(() => {
     fetchEvents();
     fetchJoinedEvents();
+    checkIfAdmin();
   }, [filters, page, perPage]);
+
+  const clearCache = () => {
+    for (const key in localStorage) {
+      if (key.startsWith("events_cache_page_")) {
+        localStorage.removeItem(key);
+      }
+    }
+  };
+
+  const checkIfAdmin = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const response = await axios.get("http://localhost:8000/api/user-details", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const role = response.data.uloga_id;
+      if (role === 1) setIsAdmin(true);
+    } catch (err) {
+      console.error("Greška pri proveri uloge:", err);
+    }
+  };
 
   const fetchEvents = () => {
     const token = localStorage.getItem("token");
+    if (!token) return;
 
-    if (!token) {
-      console.error("No token found");
-      return;
-    }
-
-    // Proveri keš
     const cachedData = localStorage.getItem(cacheKey);
     if (cachedData) {
       const parsedData = JSON.parse(cachedData);
@@ -35,13 +55,10 @@ const Events = ({ onRefresh }) => {
       return;
     }
 
-    // Ako nema keša, pravi API poziv
     axios
       .get("http://localhost:8000/api/dogadjaji", {
         params: { ...filters, page, per_page: perPage },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
         const data = {
@@ -50,8 +67,6 @@ const Events = ({ onRefresh }) => {
         };
         setEvents(data.events);
         setTotalPages(data.totalPages);
-
-        // Sačuvaj u kešu
         localStorage.setItem(cacheKey, JSON.stringify(data));
       })
       .catch((error) => {
@@ -62,17 +77,11 @@ const Events = ({ onRefresh }) => {
 
   const fetchJoinedEvents = () => {
     const token = localStorage.getItem("token");
-
-    if (!token) {
-      console.error("No token found");
-      return;
-    }
+    if (!token) return;
 
     axios
       .get("http://localhost:8000/api/dogadjaji/joined", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
         setJoinedEvents(response.data || []);
@@ -92,22 +101,29 @@ const Events = ({ onRefresh }) => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
+      clearCache();
       fetchJoinedEvents();
       fetchEvents();
-
-      // Signaliziraj osvežavanje pridruženih događaja
-      if (onRefresh) {
-        onRefresh();
-      }
-
-      // Očistimo keš jer je došlo do promene u podacima
-      for (const key in localStorage) {
-        if (key.startsWith("events_cache_page_")) {
-          localStorage.removeItem(key);
-        }
-      }
+      if (onRefresh) onRefresh();
     } catch (error) {
       console.error("Error joining event:", error);
+    }
+  };
+
+  const handleDelete = async (eventId) => {
+    const confirmed = window.confirm("Da li ste sigurni da želite da obrišete događaj?");
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`http://localhost:8000/api/dogadjaji/${eventId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      clearCache();
+      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventId));
+      setDeletedEventId(eventId);
+      setTimeout(() => setDeletedEventId(null), 3000);
+    } catch (error) {
+      console.error("Greška pri brisanju događaja:", error);
     }
   };
 
@@ -136,21 +152,27 @@ const Events = ({ onRefresh }) => {
       </div>
       <div className="events-container">
         <h2>Događaji</h2>
+        {deletedEventId && (
+          <div className="deleted-message">Događaj je uspešno obrisan.</div>
+        )}
         {events.length > 0 ? (
           events.map((event) => {
             const isJoined = joinedEvents.some((e) => e.id === event.id);
-
             return (
               <div key={event.id} className="event-card">
                 <h3>{event.naziv}</h3>
                 <p>{event.opis}</p>
                 <p>
-                  {new Date(event.datum_pocetka).toLocaleDateString()} -{" "}
-                  {new Date(event.datum_zavrsetka).toLocaleDateString()}
+                  {new Date(event.datum_pocetka).toLocaleDateString()} - {new Date(event.datum_zavrsetka).toLocaleDateString()}
                 </p>
                 <button onClick={() => handleJoin(event.id)} disabled={isJoined}>
                   {isJoined ? "Već ste pridruženi" : "Pridruži se"}
                 </button>
+                {isAdmin && (
+                  <button onClick={() => handleDelete(event.id)} className="delete-button">
+                    Obriši događaj
+                  </button>
+                )}
               </div>
             );
           })

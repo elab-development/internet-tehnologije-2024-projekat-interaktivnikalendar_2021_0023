@@ -1,23 +1,28 @@
 import React, { useEffect } from "react";
-import useFetchJoinedEvents from "../hooks/useFetchJoinedEvents";
 import axios from "axios";
 import "./Events.css";
 
 const JoinedEvents = ({ refreshFlag }) => {
-  const { joinedEvents, loading, error, setJoinedEvents } = useFetchJoinedEvents();
+  const [joinedEvents, setJoinedEvents] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
 
   useEffect(() => {
-    fetchJoinedEvents(); // Osveži podatke kada se refreshFlag promeni
+    fetchJoinedEvents();
   }, [refreshFlag]);
 
   const fetchJoinedEvents = async () => {
     try {
+      setLoading(true);
       const response = await axios.get("http://localhost:8000/api/dogadjaji/joined", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setJoinedEvents(response.data || []);
     } catch (error) {
       console.error("Greška pri učitavanju pridruženih događaja:", error);
+      setError("Greška pri učitavanju pridruženih događaja.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -32,7 +37,14 @@ const JoinedEvents = ({ refreshFlag }) => {
     }
   };
 
-  if (loading) return <p>Učitavanje pridruženih događaja...</p>;
+  if (loading)
+    return (
+      <div className="spinner-container">
+        <div className="spinner"></div>
+        <p>Učitavanje pridruženih događaja...</p>
+      </div>
+    );
+
   if (error) return <p>{error}</p>;
 
   return (

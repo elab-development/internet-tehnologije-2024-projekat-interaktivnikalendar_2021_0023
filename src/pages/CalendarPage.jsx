@@ -27,6 +27,14 @@ const CalendarPage = () => {
     fetchUserRole();
   }, []);
 
+  const clearEventCache = () => {
+    for (const key in localStorage) {
+      if (key.startsWith("events_cache_page_")) {
+        localStorage.removeItem(key);
+      }
+    }
+  };
+
   const fetchEvents = () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -129,6 +137,7 @@ const CalendarPage = () => {
       })
       .then(() => {
         setModalOpen(false);
+        clearEventCache();
         fetchEvents();
       })
       .catch((error) => {
